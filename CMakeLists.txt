@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(Lesson16 VERSION 1.0.1 DESCRIPTION "figures testing")
+project(MotionReco VERSION 1.0.1 DESCRIPTION "people motion capture")
 
 include(GoogleTest)
 include(CTest)
