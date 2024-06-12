@@ -5,6 +5,10 @@ project(MotionReco VERSION 1.0.1 DESCRIPTION "people motion capture")
 include(GoogleTest)
 include(CTest)
 include(FetchContent)
+
+# change by your contensts
+# set(OpenCV_DIR "C:\\Program Files\\opencv\\build")
+# set( OpenCV_FOUND 1 )
 FIND_PACKAGE( OpenCV REQUIRED )   
 
 
