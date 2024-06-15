@@ -1,16 +1,18 @@
 cmake_minimum_required(VERSION 3.15)
-
 project(MotionReco VERSION 1.0.1 DESCRIPTION "people motion capture")
 
+set(CMAKE_CXX_STANDARD 20)
 include(GoogleTest)
 include(CTest)
 include(FetchContent)
+FIND_PACKAGE( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-# change by your contensts
-# set(OpenCV_DIR "C:\\Program Files\\opencv\\build")
-# set( OpenCV_FOUND 1 )
-FIND_PACKAGE( OpenCV REQUIRED )   
-
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.12.1
+)
 
 FetchContent_GetProperties(googletest)
 if(NOT googletest_POPULATED)
@@ -42,15 +44,10 @@ macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES TEST_WORKING_DIRE
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-add_executable( name ${NAME_SRC} ${NAME_HEADERS} )
-
-
-set( VISION_SRC
-    src/main.cpp    
+file(GLOB vision_SRC
+     "*.h"
+     "*.cpp"
+     "utils/*.cpp"
 )
 
-# set( NAME_HEADERS
-#     include/header.h
-# )
-
-add_executable( vision ${NAME_SRC})
+add_executable( vision ${VISION_SRC} )

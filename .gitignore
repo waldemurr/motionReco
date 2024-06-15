@@ -1,5 +1,7 @@
 # build directory
 /build
+# model weights
+*.weights
 # Executables
 *.exe
 *.out

@@ -5,10 +5,10 @@ int main() {
     cv::VideoCapture video("video.mp4");
 
     // Create a human action recognition model
-    cv::Ptr<cv::dnn::Net> net;
+    // cv::Ptr<cv::dnn::Net> net;
 
     // Load pre-trained model weights and architecture
-    net = cv::dnn::readNetFromCaffe("model.prototxt", "model.caffemodel");
+    auto net = cv::dnn::readNetFromCaffe("model.prototxt", "model.caffemodel");
 
     // Loop through frames in the video
     while (true) {
@@ -18,7 +18,7 @@ int main() {
         // Preprocess frame (resize, normalize, etc.)
 
         // Pass frame through the model for action recognition
-        cv::Mat output = net->forward();
+        cv::Mat output = net.forward();
 
         // Process output to get human action predictions
 
