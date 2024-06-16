@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 include(GoogleTest)
 include(CTest)
 include(FetchContent)
-FIND_PACKAGE( OpenCV REQUIRED )
+find_package( OpenCV REQUIRED )
+# Include package fmt (for formatting text. This needs to be installed separately)
+# sudo apt install libfmt-dev libjansson-dev libxss-dev libnotify-dev libgtkmm-2.4-dev
+find_package(fmt REQUIRED)
+
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 FetchContent_Declare(
@@ -44,10 +48,18 @@ macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES TEST_WORKING_DIRE
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-file(GLOB vision_SRC
-     "*.h"
+file(GLOB VISION_SRC
+     "core/*.h"
      "*.cpp"
+     "detectors/YoloDetector.h"
+     "detectors/YoloDetector.cpp"
      "utils/*.cpp"
+     "main.cpp"
 )
 
+# Find includes in corresponding build directories
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 add_executable( vision ${VISION_SRC} )
+
+target_link_libraries(vision ${Boost_LIBRARIES} ${OpenCV_LIBS} fmt::fmt stdc++fs)

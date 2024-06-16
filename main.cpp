@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>
+#include "core/Globals.h"
 
 int main() {
     // Load video footage

@@ -1,7 +1,7 @@
 #include <fstream>
 #include <opencv2/dnn.hpp>
-#include "yolo_detection.h"
-#include "core/Globals.h"
+#include "YoloDetector.h"
+#include "../core/Globals.h"
 
 namespace Video {
     YoloDetector::YoloDetector() {
