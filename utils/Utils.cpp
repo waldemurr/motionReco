@@ -1,10 +1,6 @@
 #include "Utils.h"
 #include "date.h"
-#include <experimental/filesystem>
-#include "boost/filesystem.hpp"
-#include <boost/range/iterator_range.hpp>
-
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
 
 namespace Utils{
     /**
@@ -62,7 +58,7 @@ namespace Utils{
      * Returns which path we are currently executing in
      */
     std::string currentlyExecutingPath() {
-        return fs::current_path();
+        return std::filesystem::current_path();
     }
 
     std::string getRelativePrefix() {
@@ -77,7 +73,8 @@ namespace Utils{
     }
 
     bool validateFile(const std::string &file) {
-        if(boost::filesystem::exists(file) && boost::filesystem::is_regular_file(file)){
+        
+        if(std::filesystem::exists(file) && std::filesystem::is_regular_file(file)){
             return true;
         }else {
             Utils::print("Error!!!: "+file+" not found.");
@@ -96,11 +93,10 @@ namespace Utils{
     }
 
     std::vector<std::string> getFileListFromDir(std::string dir, std::string extension) {
-        boost::filesystem::recursive_directory_iterator it(dir), end;
 
         std::vector<std::string> files;
-        for (auto &entry : boost::make_iterator_range(it, end)) {
-            if (is_regular_file(entry) && (entry.path().extension().string() == extension)) {
+        for (auto &entry : std::filesystem::recursive_directory_iterator(dir)) {
+            if (std::filesystem::is_regular_file(entry) && (entry.path().extension().string() == extension)) {
                 files.push_back(entry.path().native());
             }
         }
