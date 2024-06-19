@@ -43,9 +43,9 @@ namespace Video {
         /*
         layer_out is a list of 3 elements. The first element has 507 rows and each row has 85 elements.
         print(len(layer_out)) # Gives 3
-        print(layer_out[0].shape) # Gives (507, 85)
-        print(layer_out[1].shape) # Gives (2028, 85)
-        print(layer_out[2].shape) # Gives (8112, 85)
+        Utils::print(layer_out[0].size()); # Gives (300, 85)
+        Utils::print(layer_out[1].size()); # Gives (1200, 85)
+        Utils::print(layer_out[2].size()); # Gives (4800, 85)
         The first 5 elements in each row, eg layer_out[0][0][0:5] is the bounding box of the found
         object. 0=center_x, 1=center_y, 2=width, 3=height, 4=? (Those are in percentage of the image)
         After that we have 80 elements. Each of those represents one object in coco.names
@@ -105,5 +105,24 @@ namespace Video {
             returnBox.push_back(boxes[idx]);
         }
         return returnBox;
+    }
+
+    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::vector<std::string> name) {
+        std::vector<std::vector<float>> ans;
+        cv::UMat blob;
+        std::vector<cv::Mat> layerOut;
+        cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(320, 320), cv::Scalar(0, 0, 0), true, false);
+        
+        net.setInput(blob);                     // Feed this blob image to the network
+        net.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
+
+        auto data = (float *) layerOut[1].data; //
+        for (int j=0; j<layerOut[1].rows; ++j, data+=layerOut[1].cols) {
+            cv::Mat scores = layerOut[1].row(j).colRange(5, layerOut[1].cols);
+            
+        }
+        std::cout << layerOut[1].size() << std::endl; // # Gives (2028, 85)
+        std::cout << layerOut[2].size() << std::endl; // # Gives (8112, 85)
+        return ans;
     }
 }

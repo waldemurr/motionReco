@@ -7,10 +7,12 @@
 #include "utils/Utils.h"
 #include "main.h"
 #include "core/Globals.h"
+#include "detectors/YoloDetector.h"
 
 // #include "video_handler.h"
 
 int main() {
+    const std::vector<std::string> names {"person"};
     // check for core files and dirs existence
     if (!checkRequiredFiles())
         exit(-1);
@@ -29,13 +31,41 @@ int main() {
     if (!std::filesystem::exists(Core::VECTOR_DIR)) {
         std::filesystem::create_directory(Core::VECTOR_DIR);
     }
-
+    Video::YoloDetector detector; 
     // iterate through every video in dataset and check for vector
     for (const auto& className : Core::CLASSES) {
         for (const auto& dirEntry : std::filesystem::directory_iterator(Core::DATASET_DIR + className)) {
             
             if (!std::filesystem::exists(Core::VECTOR_DIR + className)) {
                 std::cout << "creating vector for " << dirEntry << std::endl;
+                // open video stream
+                cv::VideoCapture capture {dirEntry.path().c_str()};
+                if (!capture.isOpened()) {
+                    Utils::print("Failed to open video stream");
+                    break;
+                }
+                bool running = true;
+                cv::UMat frame;
+                // Get a new frame from video stream
+                while (running) {
+                    capture >> frame;
+                    if (frame.empty()) {
+                        Utils::print("Stream ended. Returning...");
+                        running = false;
+                        break;
+                    }
+                    detector.grepObjects(frame, names);
+                    cv::imshow("Video output", frame);
+                    int key = cv::waitKey(10);
+                    switch (key) {
+                        case 27: // esc
+                            running = false;
+                            break;
+                    }
+                    running = false;    
+                }
+                break;
+            
             }
         }
     }
