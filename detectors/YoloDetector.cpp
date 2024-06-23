@@ -9,13 +9,13 @@ namespace Video {
         std::string classesFile = std::string(Core::COCO_NAMES_FILE);
         std::ifstream ifs(classesFile.c_str());
         std::string line;
+        int lineCount = 0;
         while (std::getline(ifs, line)) {
-            classes.push_back(line);
+            classes.insert(std::pair<std::string, int> (line, lineCount));
+            lineCount++;
         }
 
         // Load yolo model with cfg and weights
-        // For yolov3
-        //net = cv::dnn::readNetFromDarknet('./resources/yolo/yolov3.cfg', './resources/yolo/yolov3.weights');
         // For yolov4
         net = cv::dnn::readNetFromDarknet(Core::YOLO_CFG_FILE, Core::YOLO_WEIGHTS_FILE);
         net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
@@ -82,7 +82,7 @@ namespace Video {
                 cv::minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
 
                 // Only handle objects with higher confidence than confThreashold and only persons
-                if (confidence > confThreshold && classIdPoint.x < (int) classes.size() && classes[classIdPoint.x] == "person") {
+                if (confidence > Core::CONFIDENCE_THRESHOLD && classIdPoint.x < (int) classes.size() && classes["person"] == classIdPoint.x) {
                     int centerX = (int) (data[0] * internalFrame.cols);
                     int centerY = (int) (data[1] * internalFrame.rows);
                     int width = (int) (data[2] * internalFrame.cols);
@@ -99,27 +99,54 @@ namespace Video {
         // Reduce overlaping boxes with lower confidence
         std::vector<int> indexes;
         std::vector<cv::Rect> returnBox;
-        cv::dnn::NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indexes);
+        cv::dnn::NMSBoxes(boxes, confidences, Core::CONFIDENCE_THRESHOLD, Core::NON_MAX_SP_THRESHOLD, indexes);
 
         for (int idx : indexes) {
             returnBox.push_back(boxes[idx]);
         }
         return returnBox;
     }
-
-    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::vector<std::string> name) {
+    
+    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::vector<std::string> names) {
         std::vector<std::vector<float>> ans;
         cv::UMat blob;
         std::vector<cv::Mat> layerOut;
+        std::vector<int> classIndexes;
+
+
+
         cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(320, 320), cv::Scalar(0, 0, 0), true, false);
-        
         net.setInput(blob);                     // Feed this blob image to the network
         net.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
 
         auto data = (float *) layerOut[1].data; //
+        std::cout << "data vec " << layerOut[1].data;
         for (int j=0; j<layerOut[1].rows; ++j, data+=layerOut[1].cols) {
             cv::Mat scores = layerOut[1].row(j).colRange(5, layerOut[1].cols);
-            
+            for (const auto &className : names) {
+                if (!classes.contains(className)) {
+                    ans.push_back({});
+                    std::cout << "Failed to detect class \"" << className << "\""<< std::endl;
+                    continue;
+                }
+                if (data[prependingVals + classes[className]] > Core::CONFIDENCE_THRESHOLD)
+                    std::cout << "Conf "<< data[prependingVals + classes[className]] << std::endl;
+                // for (const auto &resVec : )
+            }
+
+
+
+            // if (confidence > Core::CONFIDENCE_THRESHOLD && classIdPoint.x < (int) classes.size() && classes["person"] == classIdPoint.x) {
+            //         int centerX = (int) (data[0] * internalFrame.cols);
+            //         int centerY = (int) (data[1] * internalFrame.rows);
+            //         int width = (int) (data[2] * internalFrame.cols);
+            //         int height = (int) (data[3] * internalFrame.rows);
+            //         int left = centerX - width / 2; // Store as int to get rid of decimals
+            //         int top = centerY - height / 2;
+
+            //         confidences.push_back((float) confidence);
+            //         boxes.emplace_back(left, top, width, height);
+            //     }
         }
         std::cout << layerOut[1].size() << std::endl; // # Gives (2028, 85)
         std::cout << layerOut[2].size() << std::endl; // # Gives (8112, 85)

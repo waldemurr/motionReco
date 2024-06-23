@@ -33,9 +33,10 @@ int main() {
     }
     Video::YoloDetector detector; 
     // iterate through every video in dataset and check for vector
+    int cnt = 0;
     for (const auto& className : Core::CLASSES) {
         for (const auto& dirEntry : std::filesystem::directory_iterator(Core::DATASET_DIR + className)) {
-            
+            cnt ++;
             if (!std::filesystem::exists(Core::VECTOR_DIR + className)) {
                 std::cout << "creating vector for " << dirEntry << std::endl;
                 // open video stream
@@ -64,7 +65,8 @@ int main() {
                     }
                     running = false;    
                 }
-                break;
+                if (cnt > 5)
+                    break;
             
             }
         }

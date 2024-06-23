@@ -11,6 +11,9 @@ namespace Core {
     const std::string DATASET_DIR = "../../../datasets/mixkit/";
     const std::string VECTOR_DIR = "../../../datasets/mixkit-vectors/";
     const std::list<std::string> CLASSES = {"walking", "running"};
+    // detector constants
+    const double CONFIDENCE_THRESHOLD = 0.5;
+    const double NON_MAX_SP_THRESHOLD = 0.4;
 }
 
 #endif //GLOBALS_H

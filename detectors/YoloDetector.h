@@ -21,12 +21,9 @@ namespace Video {
              */
             std::vector<cv::Rect> postProcess(cv::InputOutputArray frame, const std::vector<cv::Mat> &layerOuts);
             cv::dnn::Net net;
-            std::vector<std::string> classes;
+            std::map<std::string, int> classes;
             std::vector<cv::String> lastLayerNames;
-
-            // Initialize the parameters
-            float confThreshold = 0.5; // Confidence threshold
-            float nmsThreshold = 0.4;  // Non-maximum suppression threshold
+            const int prependingVals = 5;
     };
 }
 
