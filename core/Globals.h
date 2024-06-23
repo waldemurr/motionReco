@@ -17,7 +17,7 @@ namespace Core {
     const double CONFIDENCE_THRESHOLD = 0.5;
     const double NON_MAX_SP_THRESHOLD = 0.4;
     const int YOLO_SIZE = 320;
-    const int RN50_SIZE = 224;
+    const int RN50_SIZE = 256;
 }
 
 #endif //GLOBALS_H
