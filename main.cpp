@@ -12,7 +12,7 @@
 // #include "video_handler.h"
 
 int main() {
-    const std::vector<std::string> names {"person"};
+    const std::string objectName {"person"};
     // check for core files and dirs existence
     if (!checkRequiredFiles())
         exit(-1);
@@ -36,7 +36,6 @@ int main() {
     int cnt = 0;
     for (const auto& className : Core::CLASSES) {
         for (const auto& dirEntry : std::filesystem::directory_iterator(Core::DATASET_DIR + className)) {
-            cnt ++;
             if (!std::filesystem::exists(Core::VECTOR_DIR + className)) {
                 std::cout << "creating vector for " << dirEntry << std::endl;
                 // open video stream
@@ -55,7 +54,7 @@ int main() {
                         running = false;
                         break;
                     }
-                    detector.grepObjects(frame, names);
+                    detector.grepObjects(frame, objectName);
                     cv::imshow("Video output", frame);
                     int key = cv::waitKey(10);
                     switch (key) {
@@ -65,13 +64,12 @@ int main() {
                     }
                     running = false;    
                 }
-                if (cnt > 5)
-                    break;
+                break;
             
             }
         }
     }
-    cv::destroyAllWindows();
+    // cv::destroyAllWindows();
 
     return 0;
 }

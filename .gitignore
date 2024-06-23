@@ -2,6 +2,8 @@
 /build
 # model weights
 *.weights
+*.pth
+*.h5
 # Executables
 *.exe
 *.out

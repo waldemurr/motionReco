@@ -9,6 +9,7 @@ namespace Video {
         std::string classesFile = std::string(Core::COCO_NAMES_FILE);
         std::ifstream ifs(classesFile.c_str());
         std::string line;
+
         int lineCount = 0;
         while (std::getline(ifs, line)) {
             classes.insert(std::pair<std::string, int> (line, lineCount));
@@ -17,12 +18,16 @@ namespace Video {
 
         // Load yolo model with cfg and weights
         // For yolov4
-        net = cv::dnn::readNetFromDarknet(Core::YOLO_CFG_FILE, Core::YOLO_WEIGHTS_FILE);
-        net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-        net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+        yoloNet = cv::dnn::readNetFromDarknet(Core::YOLO_CFG_FILE, Core::YOLO_WEIGHTS_FILE);
+        yoloNet.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+        yoloNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+
+        resNet = cv::dnn::readNetFromDarknet(Core::RESNET_CFG_FILE, Core::RESNET_WEIGHTS_FILE);
+        resNet.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+        resNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 
         // Find the names of the last layer of the neural network
-        lastLayerNames = net.getUnconnectedOutLayersNames();
+        lastLayerNames = yoloNet.getUnconnectedOutLayersNames();
     }
 
     std::vector<cv::Rect> YoloDetector::detectObjects(cv::UMat frame) {
@@ -36,10 +41,10 @@ namespace Video {
         cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(320, 320), cv::Scalar(0, 0, 0), true, false);
 
         // Feed this blob image to the network
-        net.setInput(blob);
+        yoloNet.setInput(blob);
 
         // Get the output from the neural network, which is the last layer
-        net.forward(layerOut, lastLayerNames);
+        yoloNet.forward(layerOut, lastLayerNames);
         /*
         layer_out is a list of 3 elements. The first element has 507 rows and each row has 85 elements.
         print(len(layer_out)) # Gives 3
@@ -107,33 +112,35 @@ namespace Video {
         return returnBox;
     }
     
-    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::vector<std::string> names) {
+    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::string &className) {
         std::vector<std::vector<float>> ans;
         cv::UMat blob;
-        std::vector<cv::Mat> layerOut;
-        std::vector<int> classIndexes;
+        cv::UMat sub; // used to grep a subimage
+        std::vector<cv::Mat> layerOut;   
+        std::vector<cv::Rect> returnBox;  
         std::vector<float> confidences;
-        std::vector<cv::Rect> boxes;
+        std::vector<cv::Rect> boxes;   
+
+        cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(Core::YOLO_SIZE, Core::YOLO_SIZE),
+            cv::Scalar(0, 0, 0), true, false);
         
+        yoloNet.setInput(blob);                     // Feed this blob image to the network
+        yoloNet.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
 
-        cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(320, 320), cv::Scalar(0, 0, 0), true, false);
-        
-        net.setInput(blob);                     // Feed this blob image to the network
-        net.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
+        // Now look through each finding and see what objects we detected.
+        if (!classes.contains(className)) {
+            ans.push_back({});
+            std::cout << "Failed to find class \"" << className << "\""<< std::endl;
+            return ans;
+        }
+        for (const auto &out : layerOut) {
+            auto data = (float *) out.data;
+            for (int j=0; j<out.rows; ++j, data+=out.cols) {
+                cv::Mat scores = out.row(j).colRange(5, out.cols);
 
-        auto data = (float *) layerOut[1].data; //
-        std::cout << "data vec " << layerOut[1].data;
-        for (int j=0; j<layerOut[1].rows; ++j, data+=layerOut[1].cols) {
-            cv::Mat scores = layerOut[1].row(j).colRange(5, layerOut[1].cols);
-            for (const auto &className : names) {
-                if (!classes.contains(className)) {
-                    ans.push_back({});
-                    std::cout << "Failed to detect class \"" << className << "\""<< std::endl;
-                    continue;
-                }
-
-                const auto &confidence = data[prependingVals + classes[className]];
+                auto confidence = data[prependingVals + classes[className]];
                 if (confidence > Core::CONFIDENCE_THRESHOLD) {
+            
                     int centerX = (int) (data[0] * frame.cols);
                     int centerY = (int) (data[1] * frame.rows);
                     int width = (int) (data[2] * frame.cols);
@@ -144,30 +151,25 @@ namespace Video {
                     confidences.push_back((float) confidence);
                     boxes.emplace_back(left, top, width, height);
                 }
-                    std::cout << "Conf "<< data[prependingVals + classes[className]] << std::endl;
-                // for (const auto &resVec : )
             }
             // Reduce overlaping boxes with lower confidence
+        }
         std::vector<int> indexes;
-        std::vector<cv::Rect> returnBox;
         cv::dnn::NMSBoxes(boxes, confidences, Core::CONFIDENCE_THRESHOLD, Core::NON_MAX_SP_THRESHOLD, indexes);
 
-
-
-            // if (confidence > Core::CONFIDENCE_THRESHOLD && classIdPoint.x < (int) classes.size() && classes["person"] == classIdPoint.x) {
-            //         int centerX = (int) (data[0] * internalFrame.cols);
-            //         int centerY = (int) (data[1] * internalFrame.rows);
-            //         int width = (int) (data[2] * internalFrame.cols);
-            //         int height = (int) (data[3] * internalFrame.rows);
-            //         int left = centerX - width / 2; // Store as int to get rid of decimals
-            //         int top = centerY - height / 2;
-
-            //         confidences.push_back((float) confidence);
-            //         boxes.emplace_back(left, top, width, height);
-            //     }
+        // TODO: push thrue some kinda darknet and get a different vector 
+        for (int idx : indexes) {
+            returnBox.push_back(boxes[idx]);
+            // get a subMatrix 
+            sub = frame(boxes[idx]);
+            cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(Core::RN50_SIZE, Core::RN50_SIZE), 
+                cv::Scalar(0, 0, 0), true, false);
+            std::vector<double> resOut;
+            
+            resNet.setInput(blob); 
+            resNet.forward(resOut);
+            std::cout << "output size " << resOut.size() << std::endl;
         }
-        std::cout << layerOut[1].size() << std::endl; // # Gives (2028, 85)
-        std::cout << layerOut[2].size() << std::endl; // # Gives (8112, 85)
         return ans;
     }
 }
