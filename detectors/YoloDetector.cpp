@@ -112,10 +112,12 @@ namespace Video {
         cv::UMat blob;
         std::vector<cv::Mat> layerOut;
         std::vector<int> classIndexes;
-
-
+        std::vector<float> confidences;
+        std::vector<cv::Rect> boxes;
+        
 
         cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(320, 320), cv::Scalar(0, 0, 0), true, false);
+        
         net.setInput(blob);                     // Feed this blob image to the network
         net.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
 
@@ -129,10 +131,26 @@ namespace Video {
                     std::cout << "Failed to detect class \"" << className << "\""<< std::endl;
                     continue;
                 }
-                if (data[prependingVals + classes[className]] > Core::CONFIDENCE_THRESHOLD)
+
+                const auto &confidence = data[prependingVals + classes[className]];
+                if (confidence > Core::CONFIDENCE_THRESHOLD) {
+                    int centerX = (int) (data[0] * frame.cols);
+                    int centerY = (int) (data[1] * frame.rows);
+                    int width = (int) (data[2] * frame.cols);
+                    int height = (int) (data[3] * frame.rows);
+                    int left = centerX - width / 2; // Store as int to get rid of decimals
+                    int top = centerY - height / 2;
+
+                    confidences.push_back((float) confidence);
+                    boxes.emplace_back(left, top, width, height);
+                }
                     std::cout << "Conf "<< data[prependingVals + classes[className]] << std::endl;
                 // for (const auto &resVec : )
             }
+            // Reduce overlaping boxes with lower confidence
+        std::vector<int> indexes;
+        std::vector<cv::Rect> returnBox;
+        cv::dnn::NMSBoxes(boxes, confidences, Core::CONFIDENCE_THRESHOLD, Core::NON_MAX_SP_THRESHOLD, indexes);
 
 
 
