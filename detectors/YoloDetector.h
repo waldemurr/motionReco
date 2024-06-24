@@ -14,7 +14,7 @@ namespace Video {
             /*!
              * grepObjects              Returns vector with all grepped objects.
              */
-            std::vector<std::vector<float>> grepObjects(cv::UMat frame, const std::string &className);
+            std::vector<double> grepObjects(cv::UMat frame, const std::string &className);
         private:
             /**
              * Get the found objects from the net output

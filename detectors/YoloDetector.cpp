@@ -112,18 +112,17 @@ namespace Video {
         return returnBox;
     }
     
-    std::vector<std::vector<float>> YoloDetector::grepObjects(cv::UMat frame, const std::string &className) {
-        std::vector<std::vector<float>> ans;
+    std::vector<double> YoloDetector::grepObjects(cv::UMat frame, const std::string &className) {
+        std::vector<double> ans;
         cv::UMat blob;
         cv::UMat sub; // used to grep a subimage
         std::vector<cv::Mat> layerOut;   
         std::vector<cv::Rect> returnBox;  
-        std::vector<float> confidences;
-        std::vector<cv::Rect> boxes;   
+        cv::Rect bestBox;  
+        double maxConfidence = Core::CONFIDENCE_THRESHOLD; 
 
         cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(Core::YOLO_SIZE, Core::YOLO_SIZE),
-            cv::Scalar(0, 0, 0), true, false);
-        
+            cv::Scalar(0.485, 0.456, 0.406), true, false);
         yoloNet.setInput(blob);                     // Feed this blob image to the network
         yoloNet.forward(layerOut, lastLayerNames);  // Get the output from the neural network, which is the last layer
 
@@ -138,8 +137,14 @@ namespace Video {
             for (int j=0; j<out.rows; ++j, data+=out.cols) {
                 cv::Mat scores = out.row(j).colRange(5, out.cols);
 
-                auto confidence = data[prependingVals + classes[className]];
-                if (confidence > Core::CONFIDENCE_THRESHOLD) {
+                cv::Point classIdPoint;
+                double confidence;
+                // This finds the index of the max value in the scores array and returns the value at
+                // this index, stored to "confidence" here, and also returns this index in classIdPoint.
+                cv::minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
+                if (confidence > maxConfidence && 
+                    classIdPoint.x < (int) classes.size() && 
+                    classes[className] == classIdPoint.x) {
             
                     int centerX = (int) (data[0] * frame.cols);
                     int centerY = (int) (data[1] * frame.rows);
@@ -148,28 +153,27 @@ namespace Video {
                     int left = centerX - width / 2; // Store as int to get rid of decimals
                     int top = centerY - height / 2;
 
-                    confidences.push_back((float) confidence);
-                    boxes.emplace_back(left, top, width, height);
+                    maxConfidence = confidence;
+                    bestBox = cv::Rect(left, top, width, height);
                 }
             }
-            // Reduce overlaping boxes with lower confidence
         }
-        std::vector<int> indexes;
-        cv::dnn::NMSBoxes(boxes, confidences, Core::CONFIDENCE_THRESHOLD, Core::NON_MAX_SP_THRESHOLD, indexes);
-
-        // TODO: push thrue some kinda darknet and get a different vector 
-        for (int idx : indexes) {
-            returnBox.push_back(boxes[idx]);
-            // get a subMatrix 
-            sub = frame(boxes[idx]);
-            cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(Core::RN50_SIZE, Core::RN50_SIZE), 
-                cv::Scalar(0, 0, 0), true, false);
-            std::vector<double> resOut;
-            
-            resNet.setInput(blob); 
-            resNet.forward(resOut);
-            std::cout << "output size " << resOut.size() << std::endl;
-        }
+        if (bestBox.empty())
+            return ans;
+        sub = frame(bestBox);
+        sub.convertTo(sub, CV_32FC3);
+        cv::cvtColor(sub, sub, cv::COLOR_BGR2RGB);
+        
+        cv::dnn::blobFromImage(sub, blob, (1./255/0.225, 1./255/0.224, 1./255/0.229), cv::Size(Core::RN50_SIZE, Core::RN50_SIZE), 
+            cv::Scalar(0.485, 0.456, 0.406), true, false);
+        // blob = blob.reshape(1, 3);
+        
+        std::cout << blob.dims << std::endl;
+        std::cout << blob.size << std::endl;
+        resNet.setInput(blob); 
+        cv::Mat result = resNet.forward();
+        // std::cout << "output size " << ans.size() << std::endl;
+        
         return ans;
     }
 }
