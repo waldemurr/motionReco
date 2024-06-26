@@ -67,6 +67,8 @@ namespace Utils{
      */
     [[nodiscard]] bool validateFile(const std::string &file);
 
+    [[nodiscard]] bool validateDir(const std::string &dir);
+
     /**
      * @brief validate if a list files exist, prints error message if file is missing
      * @param files

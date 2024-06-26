@@ -10,8 +10,6 @@ find_package( OpenCV REQUIRED )
 # sudo apt install libfmt-dev libjansson-dev libxss-dev libnotify-dev libgtkmm-2.4-dev
 find_package(fmt REQUIRED)
 
-include_directories( ${OpenCV_INCLUDE_DIRS} )
-
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
@@ -49,12 +47,16 @@ macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES TEST_WORKING_DIRE
 endmacro()
 
 file(GLOB VISION_SRC
-     "core/*.h"
+     "resources/resnet50/*"
+     "resources/darknet/*"
+     "resources/yolo/*"
+     "core/*"
      "*.cpp"
-     "detectors/YoloDetector.h"
-     "detectors/YoloDetector.cpp"
-     "utils/*.cpp"
+     "detectors/*"
+     "classifiers/*"
+     "utils/*"
      "main.cpp"
+
 )
 
 # Find includes in corresponding build directories

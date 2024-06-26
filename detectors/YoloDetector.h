@@ -14,14 +14,14 @@ namespace Video {
             /*!
              * grepObjects              Returns vector with all grepped objects.
              */
-            std::vector<double> grepObjects(cv::UMat frame, const std::string &className);
+            cv::Mat grepObjects(cv::UMat frame, const std::string &className);
         private:
             /**
              * Get the found objects from the net output
              */
             std::vector<cv::Rect> postProcess(cv::InputOutputArray frame, const std::vector<cv::Mat> &layerOuts);
             cv::dnn::Net yoloNet;
-            cv::dnn::Net resNet;
+            cv::dnn::Net darkNet;
             std::map<std::string, int> classes;
             std::vector<cv::String> lastLayerNames;
             const int prependingVals = 5;

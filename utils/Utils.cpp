@@ -77,7 +77,17 @@ namespace Utils{
         if(std::filesystem::exists(file) && std::filesystem::is_regular_file(file)){
             return true;
         }else {
-            Utils::print("Error!!!: "+file+" not found.");
+            Utils::print("Error: file "+file+" not found.");
+            return false;
+        }
+    }
+
+    bool validateDir(const std::string &dir) {
+
+        if(std::filesystem::exists(dir) && std::filesystem::is_directory(dir)){
+            return true;
+        }else {
+            Utils::print("Error: dir " + dir + " not found.");
             return false;
         }
     }
