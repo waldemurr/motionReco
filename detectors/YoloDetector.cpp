@@ -18,18 +18,18 @@ namespace Video {
 
         // Load yolo model with cfg and weights
         // For yolov4
-        yoloNet = cv::dnn::readNetFromDarknet(std::vector<uchar>(Core::YOLO_CFG_FILE.begin(), Core::YOLO_CFG_FILE.end()), 
-                                              std::vector<uchar>(Core::YOLO_WEIGHTS_FILE.begin(), Core::YOLO_WEIGHTS_FILE.end()));
+        yoloNet = cv::dnn::readNetFromDarknet(Core::YOLO_CFG_FILE, 
+                                              Core::YOLO_WEIGHTS_FILE);
         yoloNet.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         yoloNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 
-        darkNet = cv::dnn::readNetFromDarknet(std::vector<uchar>(Core::DARKNET_CFG_FILE.begin(), Core::DARKNET_CFG_FILE.end()), 
-                                              std::vector<uchar>(Core::DARKNET_WEIGHTS_FILE.begin(), Core::DARKNET_WEIGHTS_FILE.end()));
+        darkNet = cv::dnn::readNetFromDarknet(Core::DARKNET_CFG_FILE, 
+                                              Core::DARKNET_WEIGHTS_FILE);
         darkNet.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         darkNet.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
 
         // Find the names of the last layer of the neural network
-        // lastLayerNames = yoloNet.getUnconnectedOutLayersNames();
+        lastLayerNames = yoloNet.getUnconnectedOutLayersNames();
     }
     
     cv::Mat YoloDetector::grepObjects(cv::UMat frame, const std::string &className) {

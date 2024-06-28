@@ -62,7 +62,7 @@ int main() {
                     cv::FileStorage file(vecName, cv::FileStorage::WRITE);
 
                     // Write to file!
-                    file.write(rawname, vecData);
+                    file << rawname << vecData;
 
                     // Close the file and release all the memory buffers
                     file.release();

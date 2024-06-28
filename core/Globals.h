@@ -6,8 +6,8 @@
 
 namespace Core {
     // depending on build platform add or remove "../" with pat
-    static std::string RESOURCES_PATH {"../../resources/"};
-    static std::string DATASETS_PATH {"../../../../datasets/"};
+    static std::string RESOURCES_PATH {"../resources/"};
+    static std::string DATASETS_PATH {"../../../datasets/"};
     const std::string YOLO_WEIGHTS_FILE = RESOURCES_PATH + "yolo/yolov4.weights";
     const std::string YOLO_CFG_FILE = RESOURCES_PATH+ "yolo/yolov4.cfg";
     const std::string COCO_NAMES_FILE = RESOURCES_PATH + "yolo/coco.names";
