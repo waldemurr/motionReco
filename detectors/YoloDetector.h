@@ -7,12 +7,8 @@ namespace Video {
     class YoloDetector{
         public:
             explicit YoloDetector();
-            /**
-             * detectObjects            Returns a vector with all found objects.
-             */
-            std::vector<cv::Rect> detectObjects(cv::UMat frame);
             /*!
-             * grepObjects              Returns vector with all grepped objects.
+             * grepObjects              Returns best detected object frame.
              */
             cv::Mat grepObjects(cv::UMat frame, const std::string &className);
         private:

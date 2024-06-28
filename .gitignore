@@ -4,6 +4,10 @@
 *.weights
 *.pth
 *.h5
+
+# torch repo (must be installed manually)
+/libtorch
+
 # Executables
 *.exe
 *.out

@@ -394,14 +394,14 @@ std::vector<int> RnnNet::predict(cv::Mat &input)
 void RnnNet::save(std::string filename)
 {
     cv::FileStorage model(filename, cv::FileStorage::WRITE);
-    model << "layer_neuron_num" << layer_neuron_num;
-    model << "learning_rate" << learning_rate;
-    model << "activation_function" << activation_function;
+    cv::write(model, "layer_neuron_num", layer_neuron_num);
+    cv::write(model, "learning_rate", learning_rate);
+    cv::write(model, "activation_function", activation_function);
 
     for (int i = 0; i < weights.size(); i++)
     {
         std::string weight_name = "weight_" + std::to_string(i);
-        model << weight_name << weights[i];
+        cv::write(model, weight_name, weights[i]);
     }
     model.release();
 }
@@ -413,17 +413,17 @@ void RnnNet::load(std::string filename)
     fs.open(filename, cv::FileStorage::READ);
     cv::Mat input_, target_;
 
-    fs["layer_neuron_num"] >> layer_neuron_num;
+    layer_neuron_num = fs["layer_neuron_num"].mat();
     initNet(layer_neuron_num);
 
     for (int i = 0; i < weights.size(); i++)
     {
         std::string weight_name = "weight_" + std::to_string(i);
-        fs[weight_name] >> weights[i];
+        weights[i] = fs[weight_name].mat();
     }
 
-    fs["learning_rate"] >> learning_rate;
-    fs["activation_function"] >> activation_function;
+    learning_rate = fs["learning_rate"];
+    activation_function = fs["activation_function"].string();
 
     fs.release();
 }
@@ -434,8 +434,8 @@ void get_input_label(std::string filename, cv::Mat& input, cv::Mat& label, int s
     cv::FileStorage fs;
     fs.open(filename, cv::FileStorage::READ);
     cv::Mat input_, target_;
-    fs["input"] >> input_;
-    fs["target"] >> target_;
+    input_ = fs["input"].mat();
+    target_ = fs["target"].mat();
     fs.release();
     input = input_(cv::Rect(start, 0, sample_num, input_.rows));
     label = target_(cv::Rect(start, 0, sample_num, target_.rows));

@@ -1,14 +1,19 @@
-cmake_minimum_required(VERSION 3.15)
-project(MotionReco VERSION 1.0.1 DESCRIPTION "people motion capture")
+cmake_minimum_required(VERSION 3.18)
+project(MotionReco LANGUAGES CXX VERSION 1.0.1 DESCRIPTION "people motion capture")
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ------------------ Path Settings ------------------
+set(MAIN_PATH "${CMAKE_SOURCE_DIR}") # ------- Makes source dir
+list(APPEND CMAKE_PREFIX_PATH "${MAIN_PATH}/libtorch") # torch needs to be added manually
+
 include(GoogleTest)
 include(CTest)
 include(FetchContent)
-find_package( OpenCV REQUIRED )
-# Include package fmt (for formatting text. This needs to be installed separately)
-# sudo apt install libfmt-dev libjansson-dev libxss-dev libnotify-dev libgtkmm-2.4-dev
-find_package(fmt REQUIRED)
+find_package( OpenCV REQUIRED ) 
+find_package(fmt REQUIRED) 
+find_package(Torch REQUIRED)
 
 FetchContent_Declare(
   googletest
@@ -53,7 +58,6 @@ file(GLOB VISION_SRC
      "core/*"
      "*.cpp"
      "detectors/*"
-     "classifiers/*"
      "utils/*"
      "main.cpp"
 
@@ -64,4 +68,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_executable( vision ${VISION_SRC} )
 
-target_link_libraries(vision ${Boost_LIBRARIES} ${OpenCV_LIBS} fmt::fmt stdc++fs)
+target_link_libraries(vision ${Boost_LIBRARIES} ${OpenCV_LIBS} fmt::fmt stdc++fs "${TORCH_LIBRARIES}")
+message("LIBS ${TORCH_LIBRARIES}")
+
+if (MSVC)
+  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+  add_custom_command(TARGET vision
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                     ${TORCH_DLLS}
+                     $<TARGET_FILE_DIR:vision>)
+endif (MSVC)

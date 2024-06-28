@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fmt/format.h>
-// #include <thread>
 #include <opencv2/opencv.hpp>
 #include <filesystem>
 
@@ -30,13 +29,13 @@ int main() {
             cv::Mat vecData;
             // mat.
             const auto fullname = dirEntry.path().filename().string();
-            const auto rawname = fullname.substr(0, fullname.find_last_of("."));
-            const auto vecName = Core::VECTOR_DIR + className + "/" + rawname +  ".vec" ;
+            const cv::String rawname = fullname.substr(0, fullname.find_last_of("."));
+            const cv::String vecName {Core::VECTOR_DIR + className + "/" + rawname +  ".vec"};
             if (!std::filesystem::exists(vecName)) {
                 std::cout << "creating vector for " << dirEntry << std::endl;
                 // continue;
                 // open video stream
-                cv::VideoCapture capture {dirEntry.path().c_str()};
+                cv::VideoCapture capture {dirEntry.path().string()};
                 if (!capture.isOpened()) {
                     Utils::print("Failed to open video stream");
                     break;
@@ -59,12 +58,11 @@ int main() {
                     }
                 }
                 if (!vecData.empty()){
-                    // cv::write()
-                    std::cout << "Vec size " << rawname << " " << vecData.size << std::endl;
+                    // init file
                     cv::FileStorage file(vecName, cv::FileStorage::WRITE);
 
                     // Write to file!
-                    file << rawname << vecData;
+                    file.write(rawname, vecData);
 
                     // Close the file and release all the memory buffers
                     file.release();
