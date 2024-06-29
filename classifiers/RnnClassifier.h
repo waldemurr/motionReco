@@ -13,7 +13,7 @@
 
 #include "../core/Function.h"
 
-namespace liu
+namespace classifiers
 {
 
     class RnnNet

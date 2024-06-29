@@ -1,9 +1,6 @@
 #include "Function.h"
 
 
-namespace liu
-{
-
 //sigmoid function
 cv::Mat sigmoid(cv::Mat &x)
 {
@@ -86,5 +83,3 @@ void calcLoss(cv::Mat &output, cv::Mat &target, cv::Mat &output_error, float &lo
     loss = err_sqr_sum[0] / (float)(output.rows);
 }
 
-
-}

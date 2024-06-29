@@ -58,6 +58,7 @@ file(GLOB VISION_SRC
      "core/*"
      "*.cpp"
      "detectors/*"
+     "classifiers/*"
      "utils/*"
      "main.cpp"
 
@@ -69,13 +70,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 add_executable( vision ${VISION_SRC} )
 
 target_link_libraries(vision ${Boost_LIBRARIES} ${OpenCV_LIBS} fmt::fmt stdc++fs )
-message("LIBS ${OpenCV_LIBS}")
-# "${TORCH_LIBRARIES}"
-if (MSVC)
-  file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
-  add_custom_command(TARGET vision
-                     POST_BUILD
-                     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                     ${TORCH_DLLS}
-                     $<TARGET_FILE_DIR:vision>)
-endif (MSVC)
+# ${TORCH_LIBRARIES} 
+# if (MSVC)
+#   file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/lib/*.dll")
+#   add_custom_command(TARGET vision
+#                      POST_BUILD
+#                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                      ${TORCH_DLLS}
+#                      $<TARGET_FILE_DIR:vision>)
+# endif (MSVC)

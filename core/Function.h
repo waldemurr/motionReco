@@ -1,22 +1,16 @@
 #include <opencv2/opencv.hpp>
 
-namespace liu
-{
+//sigmoid function
+cv::Mat sigmoid(cv::Mat &x);
 
-	//sigmoid function
-	cv::Mat sigmoid(cv::Mat &x);
+//Tanh function
+cv::Mat tanh(cv::Mat &x);
 
-	//Tanh function
-	cv::Mat tanh(cv::Mat &x);
+//ReLU function
+cv::Mat ReLU(cv::Mat &x);
 
-	//ReLU function
-	cv::Mat ReLU(cv::Mat &x);
+//Derivative function
+cv::Mat derivativeFunction(cv::Mat& fx, std::string func_type);
 
-	//Derivative function
-	cv::Mat derivativeFunction(cv::Mat& fx, std::string func_type);
-
-	//Objective function
-	void calcLoss(cv::Mat &output, cv::Mat &target, cv::Mat &output_error, float &loss);
-
-
-} 
+//Objective function
+void calcLoss(cv::Mat &output, cv::Mat &target, cv::Mat &output_error, float &loss);

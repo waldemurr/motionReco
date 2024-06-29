@@ -1,7 +1,7 @@
 //Implement the function included in net.h
 #include "RnnClassifier.h"
 
-namespace liu
+namespace classifiers
 {
 //Activation function
 cv::Mat RnnNet::activationFunction(cv::Mat &x, std::string func_type)

@@ -7,6 +7,7 @@
 #include "main.h"
 #include "core/Globals.h"
 #include "detectors/YoloDetector.h"
+#include "classifiers/RnnClassifier.h"
 
 // #include "video_handler.h"
 
@@ -20,20 +21,24 @@ int main() {
     }
     Video::YoloDetector detector; 
     // iterate through every video in dataset and check for vector
-    int cnt = 0;
+    int cnt = 0;    // class counter
+    cv::Mat input; // input vectors 
+    cv::Mat target; // targets ( 0 for walking and 1 for running)
+    
     for (const auto& className : Core::CLASSES) {
         if (!std::filesystem::exists(Core::VECTOR_DIR + className)) {
             std::filesystem::create_directory(Core::VECTOR_DIR + className);
         }
+        
+        // make vectors if not exist
         for (const auto& dirEntry : std::filesystem::directory_iterator(Core::DATASET_DIR + className)) {
             cv::Mat vecData;
             // mat.
             const auto fullname = dirEntry.path().filename().string();
-            const cv::String rawname = fullname.substr(0, fullname.find_last_of("."));
-            const cv::String vecName {Core::VECTOR_DIR + className + "/" + rawname +  ".vec"};
+            const auto rawname = fullname.substr(0, fullname.find_last_of("."));
+            const auto vecName {Core::VECTOR_DIR + className + "/" + rawname +  ".vec"};
             if (!std::filesystem::exists(vecName)) {
                 std::cout << "creating vector for " << dirEntry << std::endl;
-                // continue;
                 // open video stream
                 cv::VideoCapture capture {dirEntry.path().string()};
                 if (!capture.isOpened()) {
@@ -71,9 +76,42 @@ int main() {
             
             }
         }
-    }
-    cv::destroyAllWindows();
+        cv::FileStorage fileRead;
+        // now read them and put into matrix
+        for (const auto& vecEntry : std::filesystem::directory_iterator(Core::VECTOR_DIR + className)) {
+            fileRead.open(vecEntry.path().string(), cv::FileStorage::READ);
+            cv::Mat inpEntry;
+            const auto fullname = vecEntry.path().filename().string();
+            const auto rawname = fullname.substr(0, fullname.find_last_of("."));
+            fileRead[rawname] >> inpEntry;
+            // proper resizing
+            // auto newMatsize = cv::MatSize({1, inpEntry.rows, inpEntry.cols});
+            int newMatsize[3] = { 1, inpEntry.rows, inpEntry.cols };
 
+            // input.push_back(cv::Mat(3, newMatsize, inpEntry.type(), inpEntry.data));
+            inpEntry.reshape(1, 3, newMatsize);
+            input.push_back(inpEntry);
+            target.push_back(cnt);
+            fileRead.release();
+        }
+        cnt ++;
+    }
+    
+    std::cout << input.size();
+
+    classifiers::RnnNet rnn;
+    const std::vector<int> layer_neuron_num{Core::DARKNET_OUT_SIZE, 
+                                            Core::DARKNET_OUT_SIZE/2, 
+                                            Core::DARKNET_OUT_SIZE/4, 
+                                            1};
+
+
+    
+
+    rnn.initNet(layer_neuron_num);
+    rnn.initWeights(0, 0, 0.3);
+
+    cv::destroyAllWindows();
     return 0;
 }
 
