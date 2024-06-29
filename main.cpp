@@ -22,6 +22,7 @@ int main() {
     Video::YoloDetector detector; 
     // iterate through every video in dataset and check for vector
     int cnt = 0;    // class counter
+    int maxRows = 0;
     std::vector<cv::Mat> inputVec;
     cv::Mat input; // input vectors 
     cv::Mat target; // targets ( 0 for walking and 1 for running)
@@ -88,16 +89,16 @@ int main() {
             // proper resizing
             
             int newMatsize[3] = {1, inpEntry.cols, inpEntry.rows};
-           
+            maxRows = std::max(maxRows, inpEntry.rows);
             inpEntry = inpEntry.reshape(1, 3, newMatsize);
             inputVec.push_back(inpEntry);
+            
             target.push_back(cnt);
             fileRead.release();
         }
         cnt ++;
     }
 
-    cv::merge(inputVec, input);
     classifiers::RnnNet rnn;
     const std::vector<int> layer_neuron_num{Core::DARKNET_OUT_SIZE, 
                                             Core::DARKNET_OUT_SIZE/2, 
