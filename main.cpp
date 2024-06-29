@@ -22,6 +22,7 @@ int main() {
     Video::YoloDetector detector; 
     // iterate through every video in dataset and check for vector
     int cnt = 0;    // class counter
+    std::vector<cv::Mat> inputVec;
     cv::Mat input; // input vectors 
     cv::Mat target; // targets ( 0 for walking and 1 for running)
     
@@ -85,31 +86,27 @@ int main() {
             const auto rawname = fullname.substr(0, fullname.find_last_of("."));
             fileRead[rawname] >> inpEntry;
             // proper resizing
-            // auto newMatsize = cv::MatSize({1, inpEntry.rows, inpEntry.cols});
-            int newMatsize[3] = { 1, inpEntry.rows, inpEntry.cols };
-
-            // input.push_back(cv::Mat(3, newMatsize, inpEntry.type(), inpEntry.data));
-            inpEntry.reshape(1, 3, newMatsize);
-            input.push_back(inpEntry);
+            
+            int newMatsize[3] = {1, inpEntry.cols, inpEntry.rows};
+           
+            inpEntry = inpEntry.reshape(1, 3, newMatsize);
+            inputVec.push_back(inpEntry);
             target.push_back(cnt);
             fileRead.release();
         }
         cnt ++;
     }
-    
-    std::cout << input.size();
 
+    cv::merge(inputVec, input);
     classifiers::RnnNet rnn;
     const std::vector<int> layer_neuron_num{Core::DARKNET_OUT_SIZE, 
                                             Core::DARKNET_OUT_SIZE/2, 
                                             Core::DARKNET_OUT_SIZE/4, 
                                             1};
 
-
-    
-
     rnn.initNet(layer_neuron_num);
     rnn.initWeights(0, 0, 0.3);
+    rnn.train(input, target, 0.2);
 
     cv::destroyAllWindows();
     return 0;

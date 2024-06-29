@@ -137,7 +137,7 @@ void RnnNet::backward()
 }
 
 //Train,use accuracy_threshold
-void RnnNet::train(cv::Mat input, cv::Mat target_, float accuracy_threshold)
+void RnnNet::trainAcc(cv::Mat input, cv::Mat target_, float accuracy_threshold)
 {
     if (input.empty())
     {

@@ -8,8 +8,6 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-// #include <opencv2\highgui\highgui.hpp>
-//#include<iomanip>
 
 #include "../core/Function.h"
 
@@ -60,7 +58,7 @@ namespace classifiers
 		void backward();
 
 		//Train,use accuracy_threshold
-		void train(cv::Mat input, cv::Mat target, float accuracy_threshold);
+		void trainAcc(cv::Mat input, cv::Mat target, float accuracy_threshold);
 
 		//Train,use loss_threshold
         void train(cv::Mat input, cv::Mat target_, float loss_threshold, bool draw_loss_curve = false);
